@@ -8,6 +8,7 @@ export interface Author {
 }
 
 export interface PostCardVotingProps {
+  id: string
   upvotes: number
   downvotes: number
   isUpvoted?: boolean
