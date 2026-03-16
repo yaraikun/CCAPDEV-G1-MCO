@@ -1,3 +1,5 @@
+// Location: client/src/features/explore/components/Feed.tsx
+
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -24,7 +26,7 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalPosts, setTotalPosts] = useState(0)
-  const [deleteModalPost, setDeleteModalPost] = setDeleteModalPost(null)
+  const [deleteModalPost, setDeleteModalPost] = useState<Post | null>(null)
   const { startLoading, stopLoading } = useLoadingBar()
   const { votes, toggleVote } = useVoting()
 
@@ -62,7 +64,7 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
   useEffect(() => {
     setCurrentPage(1)
     fetchPage(1, sortBy, true)
-  }, [sortBy])
+  }, [sortBy, fetchPage])
 
   useEffect(() => {
     const loadCounts = async () => {
