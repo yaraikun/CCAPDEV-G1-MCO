@@ -1,9 +1,14 @@
 {
   "name": "animoforums-root",
   "private": true,
+  "type": "module",
   "engines": {
     "node": "20.x"
   },
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "dependencies": {
     "connect-mongo": "^6.0.0",
     "cookie-parser": "^1.4.7",
