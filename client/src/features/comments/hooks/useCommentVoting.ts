@@ -5,20 +5,14 @@ import {
   UseCommentVotingReturn,
 } from '../types'
 import { useVoting } from '@/features/votes/VotingContext'
-import { applyVoteOffset } from '@/features/votes/voteUtils'
 
 export function useCommentVoting():
   UseCommentVotingReturn {
-  const { votes, toggleVote } = useVoting()
+  const { votes, toggleVote, getDisplayVotes } = useVoting()
 
   const handleToggleVote = useCallback(
     (commentId: string, voteType: VoteType) => {
-      if (!commentId) {
-        console.warn(
-          'toggleVote called with empty commentId',
-        )
-        return
-      }
+      if (!commentId) return
       toggleVote(commentId, 'comment', voteType)
     },
     [toggleVote],
@@ -27,18 +21,10 @@ export function useCommentVoting():
   const getCommentScore = useCallback(
     (comment: CommentCardProps) => {
       if (!comment) return 0
-
-      const key = `comment:${comment.id}`
-      const voteState = votes[key]
-      const { upvotes, downvotes } = applyVoteOffset(
-        comment.upvotes,
-        comment.downvotes,
-        voteState,
-      )
-
-      return upvotes - downvotes
+      const display = getDisplayVotes(comment.id, 'comment', comment.upvotes, comment.downvotes)
+      return display.upvotes - display.downvotes
     },
-    [votes],
+    [getDisplayVotes],
   )
 
   const addVoteHandlers = useCallback(
@@ -61,14 +47,7 @@ export function useCommentVoting():
       const key = `comment:${comment.id}`
       const voteState = votes[key] || null
 
-      const {
-        upvotes: displayUpvotes,
-        downvotes: displayDownvotes,
-      } = applyVoteOffset(
-        comment.upvotes,
-        comment.downvotes,
-        voteState,
-      )
+      const display = getDisplayVotes(comment.id, 'comment', comment.upvotes, comment.downvotes)
 
       const handleUpvote = () => {
         handleToggleVote(comment.id, 'up')
@@ -106,8 +85,8 @@ export function useCommentVoting():
 
       return {
         ...comment,
-        upvotes: displayUpvotes,
-        downvotes: displayDownvotes,
+        upvotes: display.upvotes,
+        downvotes: display.downvotes,
         isUpvoted: voteState === 'up',
         isDownvoted: voteState === 'down',
         onUpvote: handleUpvote,
@@ -118,7 +97,7 @@ export function useCommentVoting():
         replies: processedReplies,
       }
     },
-    [votes, handleToggleVote],
+    [votes, handleToggleVote, getDisplayVotes],
   )
 
   return {
