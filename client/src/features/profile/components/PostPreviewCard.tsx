@@ -1,6 +1,3 @@
-// Post preview card with dynamic ownership check
-// Location: client/src/features/profile/components/PostPreviewCard.tsx
-
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { PostCard } from "@/features/posts/components"
@@ -18,9 +15,7 @@ export function PostPreviewCard({ post, onUpdate }: {
   const navigate = useNavigate()
   const [commentCount, setCommentCount] = useState<number>(post.commentCount)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [currentPost, setCurrentPost] = useState<typeof post>(post)
   const [isOwner, setIsOwner] = useState(false)
-  const [isVoting, setIsVoting] = useState(false)
 
   const { votes, toggleVote } = useVoting()
 
@@ -40,40 +35,13 @@ export function PostPreviewCard({ post, onUpdate }: {
 
   useEffect(() => {
     getCurrentUser().then(user => {
-      setIsOwner(!!user && !!currentPost?.author && user.id === currentPost.author.id)
+      setIsOwner(!!user && !!post?.author && user.id === post.author.id)
     })
-  }, [currentPost?.author?.id])
+  }, [post?.author?.id])
 
   const handleVote = async (voteType: 'up' | 'down') => {
-    if (!currentPost?.id || isVoting) return
-
-    const previousVote = votes[`post:${currentPost.id}`] ?? null
-
-    setIsVoting(true)
-
-    setCurrentPost((prev: typeof post) => {
-      if (!prev) return prev
-      let { upvotes, downvotes } = prev
-
-      if (voteType === 'up') {
-        if (previousVote === 'up') upvotes = Math.max(0, upvotes - 1)
-        else if (previousVote === 'down') { upvotes += 1; downvotes = Math.max(0, downvotes - 1) }
-        else upvotes += 1
-      } else {
-        if (previousVote === 'down') downvotes = Math.max(0, downvotes - 1)
-        else if (previousVote === 'up') { downvotes += 1; upvotes = Math.max(0, upvotes - 1) }
-        else downvotes += 1
-      }
-
-      return { ...prev, upvotes, downvotes }
-    })
-
-    try {
-      await toggleVote(currentPost.id, 'post', voteType)
-    } finally {
-      setIsVoting(false)
-    }
-
+    if (!post?.id) return
+    await toggleVote(post.id, 'post', voteType)
     if (onUpdate) onUpdate()
   }
 
@@ -89,28 +57,26 @@ export function PostPreviewCard({ post, onUpdate }: {
     }
   }
 
-  const voteKey = `post:${currentPost.id}`
+  const voteKey = `post:${post.id}`
   const voteState = votes[voteKey]
 
   return (
     <>
       <PostCard
-        {...currentPost}
-        upvotes={currentPost.upvotes}
-        downvotes={currentPost.downvotes}
+        {...post}
         commentCount={commentCount}
         isUpvoted={voteState === 'up'}
         isDownvoted={voteState === 'down'}
-        onClick={() => navigate(`/post/${currentPost.id}`)}
-        onUpvote={() => !isVoting && handleVote("up")}
-        onDownvote={() => !isVoting && handleVote("down")}
-        onEdit={isOwner ? () => navigate(`/post/${currentPost.id}/edit`) : undefined}
+        onClick={() => navigate(`/post/${post.id}`)}
+        onUpvote={() => handleVote("up")}
+        onDownvote={() => handleVote("down")}
+        onEdit={isOwner ? () => navigate(`/post/${post.id}/edit`) : undefined}
         onDelete={isOwner ? () => setIsDeleteModalOpen(true) : undefined}
       />
 
       <DeletePostModal
         isOpen={isDeleteModalOpen}
-        postTitle={currentPost.title}
+        postTitle={post.title}
         onConfirm={handleDelete}
         onClose={() => setIsDeleteModalOpen(false)}
       />
