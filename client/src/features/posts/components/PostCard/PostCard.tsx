@@ -40,6 +40,7 @@ const PostCard = ({
       <div className="flex">
         {/* Vote Column */}
         <PostCardVoting
+          id={id}
           upvotes={upvotes}
           downvotes={downvotes}
           isUpvoted={isUpvoted}
