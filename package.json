@@ -9,8 +9,9 @@
     "server"
   ],
   "scripts": {
-    "build:client": "npm run build --workspace=client",
-    "build:server": "npm run build --workspace=server"
+    "install:all": "npm install",
+    "build:client": "cd client && npm install && ../node_modules/.bin/vite build",
+    "build:server": "cd server && npm install && ../node_modules/.bin/tsc"
   },
   "dependencies": {
     "connect-mongo": "^6.0.0",
