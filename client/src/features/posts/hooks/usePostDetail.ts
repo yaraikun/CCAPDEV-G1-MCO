@@ -1,5 +1,3 @@
-// Location: client/src/features/posts/hooks/usePostDetail.ts
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { postService } from '../services'
@@ -82,33 +80,13 @@ export const usePostDetail = ({
 
   const handleVote = async (voteType: 'up' | 'down') => {
     if (!post) return
-
-    const previousVote = votes[`post:${post.id}`] ?? null
     await toggleVote(post.id, 'post', voteType)
-
-    setPost(prev => {
-      if (!prev) return prev
-      let { upvotes, downvotes } = prev
-
-      if (voteType === 'up') {
-        if (previousVote === 'up') upvotes = Math.max(0, upvotes - 1)
-        else if (previousVote === 'down') { upvotes += 1; downvotes = Math.max(0, downvotes - 1) }
-        else upvotes += 1
-      } else {
-        if (previousVote === 'down') downvotes = Math.max(0, downvotes - 1)
-        else if (previousVote === 'up') { downvotes += 1; upvotes = Math.max(0, upvotes - 1) }
-        else downvotes += 1
-      }
-
-      return { ...prev, upvotes, downvotes }
-    })
   }
 
   const handleSpaceClick = () => {
     if (post) navigate(`/r/${post.space}`)
   }
 
-  // Use local post state directly — no voteDeltas dependency
   const upvotes = post?.upvotes ?? 0
   const downvotes = post?.downvotes ?? 0
   const score = upvotes - downvotes
