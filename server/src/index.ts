@@ -21,26 +21,23 @@ dotenv.config();
 
 const app = express();
 
+// Vercel acts as a proxy; we must trust it to handle 'secure' cookies correctly
+app.set('trust proxy', 1);
+
 // Connect to database
 if (process.env.MONGODB_URI) {
   connectDB();
-} else {
-  console.error("CRITICAL: MONGODB_URI is not defined in environment variables.");
 }
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// Middleware
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
-
-// Cookie parser — required for signed rememberMe cookie in auth flow
 app.use(cookieParser(process.env.SESSION_SECRET || 'keyboard cat'));
 
-// Session config
 app.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard cat',
   resave: false,
@@ -51,18 +48,15 @@ app.use(session({
     collectionName: 'sessions'
   }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24, // 1 day default
+    maxAge: 1000 * 60 * 60 * 24,
     secure: isProd, 
     sameSite: isProd ? 'none' : 'lax'
-  },
-  proxy: true 
+  }
 }));
 
-// Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
@@ -75,7 +69,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', env: process.env.NODE_ENV });
 });
 
-// Only listen if not running as a serverless function
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
