@@ -13,6 +13,8 @@ export interface Comment {
   editedAt: Date | null
   deletedAt: Date | null
   deletedBy: string | null
+  upvotes: number
+  downvotes: number
   author?: any
 }
 
