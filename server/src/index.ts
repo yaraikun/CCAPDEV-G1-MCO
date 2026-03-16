@@ -24,9 +24,11 @@ const app = express();
 // Connect to database
 connectDB();
 
+const isProd = process.env.NODE_ENV === 'production';
+
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
@@ -39,14 +41,17 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard cat',
   resave: false,
   saveUninitialized: false,
-  rolling: true, // Extends session on every visit
+  rolling: true,
   store: MongoStore.create({
     mongoUrl: process.env.MONGODB_URI,
     collectionName: 'sessions'
   }),
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 // 1 day default — overridden by rememberMe in authRoutes
-  }
+    maxAge: 1000 * 60 * 60 * 24, // 1 day default
+    secure: isProd, // Required for HTTPS on Vercel
+    sameSite: isProd ? 'none' : 'lax' // Required for cross-domain cookies
+  },
+  proxy: true // Required for Vercel/Render proxies
 }));
 
 // Initialize passport
@@ -62,12 +67,16 @@ app.use('/api/votes', voteRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stats', statsRoutes);
 
-const PORT = process.env.PORT || 3000;
-
 app.get('/', (req, res) => {
   res.send('AnimoSpaces API is running...');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Only listen if not running as a serverless function
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
