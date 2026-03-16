@@ -22,7 +22,11 @@ dotenv.config();
 const app = express();
 
 // Connect to database
-connectDB();
+if (process.env.MONGODB_URI) {
+  connectDB();
+} else {
+  console.error("CRITICAL: MONGODB_URI is not defined in environment variables.");
+}
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -34,7 +38,7 @@ app.use(cors({
 app.use(express.json());
 
 // Cookie parser — required for signed rememberMe cookie in auth flow
-app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(cookieParser(process.env.SESSION_SECRET || 'keyboard cat'));
 
 // Session config
 app.use(session({
@@ -48,10 +52,10 @@ app.use(session({
   }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24, // 1 day default
-    secure: isProd, // Required for HTTPS on Vercel
-    sameSite: isProd ? 'none' : 'lax' // Required for cross-domain cookies
+    secure: isProd, 
+    sameSite: isProd ? 'none' : 'lax'
   },
-  proxy: true // Required for Vercel/Render proxies
+  proxy: true 
 }));
 
 // Initialize passport
@@ -67,8 +71,8 @@ app.use('/api/votes', voteRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stats', statsRoutes);
 
-app.get('/', (req, res) => {
-  res.send('AnimoSpaces API is running...');
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', env: process.env.NODE_ENV });
 });
 
 // Only listen if not running as a serverless function
