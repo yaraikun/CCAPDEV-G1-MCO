@@ -57,6 +57,7 @@ export const PostDetailContent = ({
       <div className="flex">
         <PostDetailVoteColumn 
           postId={post.id}
+          score={score}
           upvotes={upvotes}
           downvotes={downvotes}
           isUpvoted={isUpvoted}
