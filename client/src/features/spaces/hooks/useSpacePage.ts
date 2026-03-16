@@ -8,17 +8,6 @@ import { useVoting } from '@/features/votes/VotingContext'
 import { useAuth } from '@/features/auth/hooks'
 import { useToast } from '@/hooks/ToastContext'
 
-// ─── Vote Delta Lookup ───────────────────────────────────────
-// Key: `${voteType}:${previousVote ?? 'null'}`
-const VOTE_DELTAS: Record<string, { up: number; down: number }> = {
-  'up:up':     { up: -1, down:  0 },
-  'up:down':   { up:  1, down: -1 },
-  'up:null':   { up:  1, down:  0 },
-  'down:down': { up:  0, down: -1 },
-  'down:up':   { up: -1, down:  1 },
-  'down:null': { up:  0, down:  1 },
-}
-
 export const useSpacePage = (spaceName?: string) => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -32,7 +21,6 @@ export const useSpacePage = (spaceName?: string) => {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [votingPosts, setVotingPosts] = useState<Set<string>>(new Set())
   
   const { startLoading, stopLoading } = useLoadingBar()
   const { votes, toggleVote } = useVoting()
@@ -97,33 +85,8 @@ export const useSpacePage = (spaceName?: string) => {
   }, [space, navigate])
 
   const handleVote = async (postId: string, voteType: 'up' | 'down') => {
-    if (!postId || votingPosts.has(postId)) return
-    const previousVote = votes[`post:${postId}`] ?? null
-    const deltaKey = `${voteType}:${previousVote ?? 'null'}`
-    const delta = VOTE_DELTAS[deltaKey]
-
-    if (!delta) return 
-
-    setVotingPosts((prev) => new Set(prev).add(postId))
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id !== postId) return post
-        return {
-          ...post,
-          upvotes: Math.max(0, post.upvotes + delta.up),
-          downvotes: Math.max(0, post.downvotes + delta.down),
-        }
-      })
-    )
-    try {
-      await toggleVote(postId, 'post', voteType)
-    } finally {
-      setVotingPosts((prev) => { 
-        const next = new Set(prev)
-        next.delete(postId)
-        return next 
-      })
-    }
+    if (!postId) return
+    await toggleVote(postId, 'post', voteType)
   }
 
   const isOwner = !!user && !!space && isSpaceOwner(space, user.id)
