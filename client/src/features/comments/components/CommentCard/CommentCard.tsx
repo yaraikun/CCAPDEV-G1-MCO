@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/useToast'
 import { Toast } from '@/components/ui/Toast'
 
 export const CommentCard = ({
+  id,
   content,
   author,
   upvotes,
@@ -178,6 +179,7 @@ export const CommentCard = ({
           {!isEditing && (
             <div className="flex items-center gap-3">
               <CommentVoting
+                id={id}
                 upvotes={upvotes}
                 downvotes={downvotes}
                 isUpvoted={isUpvoted}
