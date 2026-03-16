@@ -27,7 +27,10 @@ export const convertObjectId = (data: any): any => {
   return data
 }
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+// In production (Vercel), we use relative paths to avoid CORS issues.
+// In development, we fallback to the local server.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api')
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const response = await fetch(url, {

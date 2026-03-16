@@ -24,6 +24,8 @@ class CommentService {
           editedAt: converted.editedAt ? new Date(converted.editedAt) : null,
           deletedAt: converted.deletedAt ? new Date(converted.deletedAt) : null,
           deletedBy: converted.deletedBy || null,
+          upvotes: converted.upvotes || 0,
+          downvotes: converted.downvotes || 0,
           // Backend always populates author — no fallback needed
           author: comment.author
         }
@@ -59,6 +61,8 @@ class CommentService {
         editedAt: null,
         deletedAt: null,
         deletedBy: null,
+        upvotes: 0,
+        downvotes: 0,
         author: converted.author
       }
 
@@ -91,6 +95,8 @@ class CommentService {
         editedAt: converted.editedAt ? new Date(converted.editedAt) : null,
         deletedAt: null,
         deletedBy: null,
+        upvotes: converted.upvotes || 0,
+        downvotes: converted.downvotes || 0,
         author: converted.author
       }
 
@@ -123,7 +129,7 @@ class CommentService {
         return {
           ...c,
           author: { _id: c.authorId, username: '[deleted]', displayName: '[deleted]', avatar: '' },
-          voteScore: 0,
+          voteScore: (c as any).upvotes - (c as any).downvotes,
           userVote: null as any
         }
       }
@@ -138,7 +144,7 @@ class CommentService {
       return {
         ...c,
         author,
-        voteScore: 0,
+        voteScore: (c as any).upvotes - (c as any).downvotes,
         userVote: null as any
       }
     })
@@ -170,8 +176,8 @@ class CommentService {
       id: comment._id,
       content: comment.deletedAt ? '[deleted]' : comment.content,
       author,
-      upvotes: 0,
-      downvotes: 0,
+      upvotes: (comment as any).upvotes || 0,
+      downvotes: (comment as any).downvotes || 0,
       createdAt: formatTimeAgo(comment.createdAt),
       editedAt: comment.editedAt ? formatTimeAgo(comment.editedAt) : undefined,
       isOwner: currentUser ? comment.authorId === currentUser.id : false,
