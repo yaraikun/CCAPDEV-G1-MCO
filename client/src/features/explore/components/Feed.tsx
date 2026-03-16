@@ -1,5 +1,3 @@
-// Location: client/src/features/explore/components/Feed.tsx
-
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -26,8 +24,7 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalPosts, setTotalPosts] = useState(0)
-  const [votingPosts, setVotingPosts] = useState<Set<string>>(new Set())
-  const [deleteModalPost, setDeleteModalPost] = useState<Post | null>(null)
+  const [deleteModalPost, setDeleteModalPost] = setDeleteModalPost(null)
   const { startLoading, stopLoading } = useLoadingBar()
   const { votes, toggleVote } = useVoting()
 
@@ -65,7 +62,7 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
   useEffect(() => {
     setCurrentPage(1)
     fetchPage(1, sortBy, true)
-  }, [sortBy]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sortBy])
 
   useEffect(() => {
     const loadCounts = async () => {
@@ -108,37 +105,8 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
   }
 
   const handleVote = async (postId: string, voteType: 'up' | 'down') => {
-    if (!postId || votingPosts.has(postId)) return
-
-    const previousVote = votes[`post:${postId}`] ?? null
-    setVotingPosts(prev => new Set(prev).add(postId))
-
-    setPosts(prev => prev.map(post => {
-      if (post.id !== postId) return post
-      let { upvotes, downvotes } = post
-
-      if (voteType === 'up') {
-        if (previousVote === 'up') upvotes = Math.max(0, upvotes - 1)
-        else if (previousVote === 'down') { upvotes += 1; downvotes = Math.max(0, downvotes - 1) }
-        else upvotes += 1
-      } else {
-        if (previousVote === 'down') downvotes = Math.max(0, downvotes - 1)
-        else if (previousVote === 'up') { downvotes += 1; upvotes = Math.max(0, upvotes - 1) }
-        else downvotes += 1
-      }
-
-      return { ...post, upvotes, downvotes }
-    }))
-
-    try {
-      await toggleVote(postId, 'post', voteType)
-    } finally {
-      setVotingPosts(prev => {
-        const next = new Set(prev)
-        next.delete(postId)
-        return next
-      })
-    }
+    if (!postId) return
+    await toggleVote(postId, 'post', voteType)
   }
 
   const handleDeletePost = async () => {
@@ -167,14 +135,12 @@ export const Feed = ({ sortBy = 'best' }: { sortBy?: string }) => {
             <PostCard
               key={post.id}
               {...post}
-              upvotes={post.upvotes}
-              downvotes={post.downvotes}
               commentCount={realCommentCount}
               isUpvoted={voteState === 'up'}
               isDownvoted={voteState === 'down'}
               onClick={() => navigate(`/post/${post.id}`)}
-              onUpvote={() => !votingPosts.has(post.id) && handleVote(post.id, 'up')}
-              onDownvote={() => !votingPosts.has(post.id) && handleVote(post.id, 'down')}
+              onUpvote={() => handleVote(post.id, 'up')}
+              onDownvote={() => handleVote(post.id, 'down')}
               onEdit={post.isOwner ? () => navigate(`/post/${post.id}/edit`) : undefined}
               onDelete={post.isOwner ? () => setDeleteModalPost(post) : undefined}
             />
