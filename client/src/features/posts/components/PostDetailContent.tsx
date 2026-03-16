@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { PostDetailVoteColumn } from './PostDetailVoteColumn'
 import { PostDetailActions } from './PostDetailActions'
 import { Avatar } from '@/components/ui'
-import type { PostDetailContentProps, PostDetailVoteColumnProps} from '../types'
+import type { PostDetailContentProps } from '../types'
 import { formatTimeAgo } from '@/lib/dateUtils'
 import { PostImage } from './PostImage'
 import ReactMarkdown from 'react-markdown'
@@ -41,14 +41,6 @@ export const PostDetailContent = ({
     [navigate, post.author.username]
   )
 
-  const voteProps: PostDetailVoteColumnProps = {
-    score,
-    isUpvoted,
-    isDownvoted,
-    onUpvote,
-    onDownvote,
-  }
-
   const flairStyle = post.flair
     ? (FLAIR_COLORS[post.flair] ?? FLAIR_FALLBACK)
     : null
@@ -63,7 +55,15 @@ export const PostDetailContent = ({
       )}
     >
       <div className="flex">
-        <PostDetailVoteColumn {...voteProps} />
+        <PostDetailVoteColumn 
+          postId={post.id}
+          upvotes={upvotes}
+          downvotes={downvotes}
+          isUpvoted={isUpvoted}
+          isDownvoted={isDownvoted}
+          onUpvote={onUpvote}
+          onDownvote={onDownvote}
+        />
 
         <div className="flex-1 p-6 sm:p-8">
           <div
@@ -205,7 +205,10 @@ export const PostDetailContent = ({
             commentCount={commentCount}
             upvotes={upvotes}
             downvotes={downvotes}
-            {...voteProps}
+            isUpvoted={isUpvoted}
+            isDownvoted={isDownvoted}
+            onUpvote={onUpvote}
+            onDownvote={onDownvote}
           />
         </div>
       </div>
